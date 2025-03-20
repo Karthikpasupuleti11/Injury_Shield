@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, X, MinusSquare, Loader2 } from 'lucide-react';
+import { MessageSquare, Send, X, MinusSquare } from 'lucide-react';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 const genAI = new GoogleGenerativeAI('AIzaSyCeEgC568bwgOy0uxjeuWwR8zODK5RsggM');
