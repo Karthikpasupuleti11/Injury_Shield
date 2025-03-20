@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Shield, ChevronRight, Activity, Brain, Target, Users, Search, Globe, Menu, X } from 'lucide-react';
-import { useScrollAnimation, useParallax } from './hooks/useScrollAnimation';
+import { useScrollAnimation, useParallax } from './hooks/useScrollAnimations';
 import PerformanceAnalysis from './components/PerformanceAnalysis';
 import About from './components/About';
 import Contact from './components/Contact';
 import LearnMore from './components/LearnMore';
 import TrainingReports from './components/TrainingReports';
+import ChatBot from './components/ChatBot';
 
 function App() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -137,6 +138,9 @@ function App() {
             </div>
           </div>
         </footer>
+
+        {/* ChatBot Component */}
+        <ChatBot />
       </div>
     </Router>
   );

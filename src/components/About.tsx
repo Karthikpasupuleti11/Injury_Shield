@@ -1,11 +1,59 @@
-import React, { useEffect, useState } from 'react';
-import { Shield, Award, Users, Target, ChevronDown, ArrowRight } from 'lucide-react';
-import { motion, useAnimation, AnimationControls } from 'framer-motion';
+import React, { useEffect, useState, useRef } from 'react';
+import { Shield, Award, Users, Target, ChevronDown, ArrowRight, Send, X, MessageSquare } from 'lucide-react';
+import { motion, useAnimation, AnimatePresence, AnimationControls } from 'framer-motion';
 import { useInView } from 'react-intersection-observer';
 
 const About = () => {
-  const [activeSection, setActiveSection] = useState('hero');
+  const [, setActiveSection] = useState('hero');
   const [scrollY, setScrollY] = useState(0);
+  
+  // ChatBot state
+  const [isOpen, setIsOpen] = useState(false);
+  const [messages, setMessages] = useState([
+    { text: "Hi there! How can I help you with InjuryShield today?", isBot: true }
+  ]);
+  const [inputText, setInputText] = useState('');
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Auto-scroll to bottom of messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  // Sample responses based on keywords
+  const getResponse = (query: string) => {
+    const lowerQuery = query.toLowerCase();
+    
+    if (lowerQuery.includes('price') || lowerQuery.includes('cost') || lowerQuery.includes('pricing')) {
+      return "Our pricing plans start at $99/month for individual athletes. Team plans are available starting at $499/month. Would you like to schedule a demo?";
+    } else if (lowerQuery.includes('demo') || lowerQuery.includes('trial')) {
+      return "We offer a 14-day free trial for all our plans. You can schedule a demo with our team by visiting our website or emailing support@injuryshield.com";
+    } else if (lowerQuery.includes('injury') || lowerQuery.includes('prevention')) {
+      return "InjuryShield uses AI and biomechanics data to predict and prevent up to 95% of common sports injuries. Our system provides personalized recommendations based on your movement patterns.";
+    } else if (lowerQuery.includes('team') || lowerQuery.includes('staff')) {
+      return "Our team includes sports scientists, biomechanics experts, and AI specialists led by Dr. Sarah Chen, our Chief Scientific Officer. Would you like to learn more about our team?";
+    } else if (lowerQuery.includes('contact') || lowerQuery.includes('support')) {
+      return "You can reach our support team at support@injuryshield.com or call us at 1-800-INJSHLD. Our support is available 24/7.";
+    } else {
+      return "Thanks for your question. Our team would be happy to provide more information. Would you like to schedule a call with one of our specialists?";
+    }
+  };
+
+  const handleChatSubmit = (e: { preventDefault: () => void; }) => {
+    e.preventDefault();
+    
+    if (!inputText.trim()) return;
+    
+    // Add user message
+    setMessages([...messages, { text: inputText, isBot: false }]);
+    
+    // Simulate response delay
+    setTimeout(() => {
+      setMessages(prev => [...prev, { text: getResponse(inputText), isBot: true }]);
+    }, 1000);
+    
+    setInputText('');
+  };
 
   // Team members data
   const teamMembers = [
@@ -130,7 +178,7 @@ const About = () => {
   };
 
   // Section references for animations
-  const [heroRef, heroControls] = useScrollAnimation() as [React.RefObject<HTMLElement>, AnimationControls];
+  const [heroRef, heroControls] = useScrollAnimation();
   const [valuesRef, valuesControls] = useScrollAnimation(0.1) as [React.RefObject<HTMLElement>, AnimationControls];
   const [teamRef, teamControls] = useScrollAnimation(0.1) as [React.RefObject<HTMLElement>, AnimationControls];
   const [achievementsRef, achievementsControls] = useScrollAnimation(0.1) as [React.RefObject<HTMLElement>, AnimationControls];
@@ -146,26 +194,84 @@ const About = () => {
 
   return (
     <div className="bg-black text-white overflow-hidden scroll-smooth">
-      {/* Fixed navigation dots */}
-      <div className="fixed right-6 top-1/2 transform -translate-y-1/2 z-50 hidden lg:block">
-        {['hero', 'values', 'team', 'achievements'].map((section) => (
-          <button
-            key={section}
-            onClick={() => scrollToSection(section)}
-            className={`block w-3 h-3 my-4 rounded-full transition-all duration-300 ${
-              activeSection === section ? 'bg-red-500 scale-150' : 'bg-gray-500 hover:bg-red-400'
-            }`}
-            aria-label={`Navigate to ${section} section`}
-          />
-        ))}
-      </div>
+      {/* ChatBot Component */}
+      <>
+        {/* Chat toggle button */}
+        <motion.button
+          className="fixed right-8 bottom-8 bg-red-500 text-white p-4 rounded-full shadow-lg hover:bg-red-600 z-50"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          {isOpen ? <X size={24} /> : <MessageSquare size={24} />}
+        </motion.button>
+        
+        {/* Chat window */}
+        <AnimatePresence>
+          {isOpen && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.9 }}
+              transition={{ duration: 0.3 }}
+              className="fixed right-8 bottom-24 w-80 md:w-96 h-96 bg-gray-900 rounded-lg shadow-xl overflow-hidden z-40 border border-gray-700"
+            >
+              {/* Chat header */}
+              <div className="bg-gray-800 p-4 border-b border-gray-700">
+                <h3 className="font-bold text-white flex items-center">
+                  <span className="bg-red-500 h-2 w-2 rounded-full inline-block mr-2"></span>
+                  InjuryShield Assistant
+                </h3>
+              </div>
+              
+              {/* Chat messages */}
+              <div className="p-4 overflow-y-auto h-64">
+                {messages.map((msg, index) => (
+                  <div 
+                    key={index} 
+                    className={`mb-3 ${msg.isBot ? 'text-left' : 'text-right'}`}
+                  >
+                    <div 
+                      className={`inline-block p-3 rounded-lg ${
+                        msg.isBot 
+                          ? 'bg-gray-800 text-white' 
+                          : 'bg-red-500 text-white'
+                      } max-w-[80%]`}
+                    >
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                <div ref={messagesEndRef} />
+              </div>
+              
+              {/* Chat input */}
+              <form onSubmit={handleChatSubmit} className="p-3 border-t border-gray-700 flex">
+                <input
+                  type="text"
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Ask about InjuryShield..."
+                  className="flex-1 bg-gray-800 text-white p-2 rounded-l-lg focus:outline-none"
+                />
+                <button 
+                  type="submit" 
+                  className="bg-red-500 text-white p-2 rounded-r-lg hover:bg-red-600"
+                >
+                  <Send size={20} />
+                </button>
+              </form>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>
 
       {/* Hero Section with Parallax */}
       <motion.section
         id="hero"
-        ref={heroRef as React.RefObject<HTMLElement>}
+        ref={heroRef as React.LegacyRef<HTMLElement>}
         initial="hidden"
-        animate={heroControls}
+        animate={heroControls as AnimationControls}
         variants={fadeInUp}
         className="relative min-h-screen flex items-center justify-center py-20 overflow-hidden"
       >
@@ -207,7 +313,7 @@ const About = () => {
       {/* Core Values with Hover Effects */}
       <motion.section
         id="values"
-        ref={valuesRef as any}
+        ref={valuesRef as React.LegacyRef<HTMLElement>}
         initial="hidden"
         animate={valuesControls}
         variants={staggerContainer}
@@ -245,7 +351,7 @@ const About = () => {
       {/* Team Section with Card Interactivity */}
       <motion.section
         id="team"
-        ref={teamRef}
+        ref={teamRef as React.LegacyRef<HTMLElement>}
         initial="hidden"
         animate={teamControls}
         variants={staggerContainer}
@@ -304,7 +410,7 @@ const About = () => {
       {/* Achievements with Counter Animation */}
       <motion.section
         id="achievements"
-        ref={achievementsRef}
+        ref={achievementsRef as React.LegacyRef<HTMLElement>}
         initial="hidden"
         animate={achievementsControls}
         variants={staggerContainer}
@@ -364,4 +470,3 @@ const About = () => {
 };
 
 export default About;
-  
